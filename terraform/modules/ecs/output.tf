@@ -1,7 +1,11 @@
 #############################################
-# OUTPUT STRAPI URL
+# ECS SERVICE OUTPUT
 #############################################
 
-output "strapi_url" {
-  value = "http://${data.aws_network_interface.ecs_eni.public_ip}:1337"
+output "cluster_name" {
+  value = aws_ecs_cluster.cluster.name
+}
+
+output "service_name" {
+  value = aws_ecs_service.service.name
 }

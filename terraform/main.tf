@@ -54,6 +54,10 @@ module "ecs" {
 # FINAL OUTPUT
 #############################################
 
-output "strapi_application_url" {
-  value = module.ecs.strapi_url
+output "ecs_cluster_name" {
+  value = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  value = module.ecs.service_name
 }
