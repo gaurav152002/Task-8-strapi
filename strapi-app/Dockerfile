@@ -1,19 +1,19 @@
-# Use official Node image
-FROM node:18-alpine
+# Use official Node 18 image (NOT alpine)
+FROM node:18
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install dependencies (IMPORTANT: no --production here)
+RUN npm install
 
-# Copy project files
+# Copy all project files
 COPY . .
 
-# Build Strapi admin
+# Build Strapi admin panel
 RUN npm run build
 
 # Expose Strapi port
