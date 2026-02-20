@@ -3,7 +3,7 @@ name: Deploy gaurav-strapi-task8 to ECS
 on:
   push:
     branches:
-      - main   # Runs when you push to main branch
+      - main
 
 env:
   AWS_REGION: us-east-1
@@ -16,55 +16,70 @@ jobs:
 
     steps:
 
-    #################################################
-    # STEP 1 - CHECKOUT CODE
-    #################################################
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      #################################################
+      # 1️⃣ CHECKOUT CODE
+      #################################################
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    #################################################
-    # STEP 2 - CONFIGURE AWS CREDENTIALS
-    #################################################
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
+      #################################################
+      # 2️⃣ CONFIGURE AWS CREDENTIALS
+      #################################################
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    #################################################
-    # STEP 3 - LOGIN TO ECR
-    #################################################
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+      #################################################
+      # 3️⃣ LOGIN TO ECR
+      #################################################
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    #################################################
-    # STEP 4 - BUILD & PUSH DOCKER IMAGE
-    #################################################
-    - name: Build and Push Docker Image
-      run: |
-        docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-        docker tag $ECR_REPOSITORY:$IMAGE_TAG \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-        docker push \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${AWS_REGION}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+      #################################################
+      # 4️⃣ BUILD DOCKER IMAGE (IMPORTANT FIX HERE)
+      #################################################
+      - name: Build Docker Image
+        run: |
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG ./strapi-app
 
-    #################################################
-    # STEP 5 - TERRAFORM INIT
-    #################################################
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      #################################################
+      # 5️⃣ TAG IMAGE FOR ECR
+      #################################################
+      - name: Tag Docker Image
+        run: |
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-    - name: Terraform Init
-      run: |
-        cd terraform
-        terraform init
+      #################################################
+      # 6️⃣ PUSH IMAGE TO ECR
+      #################################################
+      - name: Push Docker Image
+        run: |
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-    #################################################
-    # STEP 6 - TERRAFORM APPLY
-    #################################################
-    - name: Terraform Apply
-      run: |
-        cd terraform
-        terraform apply -auto-approve
+      #################################################
+      # 7️⃣ SETUP TERRAFORM
+      #################################################
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      #################################################
+      # 8️⃣ TERRAFORM INIT
+      #################################################
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+
+      #################################################
+      # 9️⃣ TERRAFORM APPLY
+      #################################################
+      - name: Terraform Apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve
