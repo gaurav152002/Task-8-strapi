@@ -16,15 +16,9 @@ jobs:
 
     steps:
 
-      #################################################
-      # 1️⃣ CHECKOUT CODE
-      #################################################
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      #################################################
-      # 2️⃣ CONFIGURE AWS CREDENTIALS
-      #################################################
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -33,51 +27,38 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       #################################################
-      # 3️⃣ SETUP TERRAFORM
+      # TERRAFORM FIRST (STATE ENABLED)
       #################################################
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      #################################################
-      # 4️⃣ TERRAFORM INIT
-      #################################################
       - name: Terraform Init
         run: |
           cd terraform
-          terraform init
+          terraform init -reconfigure
 
-      #################################################
-      # 5️⃣ TERRAFORM APPLY (CREATE ECR FIRST)
-      #################################################
       - name: Terraform Apply
         run: |
           cd terraform
           terraform apply -auto-approve
 
       #################################################
-      # 6️⃣ LOGIN TO ECR
+      # THEN BUILD & PUSH DOCKER
       #################################################
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      #################################################
-      # 7️⃣ BUILD DOCKER IMAGE
-      #################################################
       - name: Build Docker Image
         run: |
           docker build -t $ECR_REPOSITORY:$IMAGE_TAG ./strapi-app
 
-      #################################################
-      # 8️⃣ TAG IMAGE
-      #################################################
       - name: Tag Docker Image
         run: |
           docker tag $ECR_REPOSITORY:$IMAGE_TAG \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-      #################################################
-      # 9️⃣ PUSH IMAGE
-      #################################################
       - name: Push Docker Image
         run: |
           docker push \
