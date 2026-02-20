@@ -1,4 +1,12 @@
 #############################################
+# ECS CLUSTER
+#############################################
+
+resource "aws_ecs_cluster" "cluster" {
+  name = "gaurav-strapi-task8-cluster"
+}
+
+#############################################
 # ECS TASK DEFINITION
 #############################################
 
@@ -24,31 +32,12 @@ resource "aws_ecs_task_definition" "task" {
         }
       ]
 
-      #################################################
-      # REQUIRED STRAPI ENV VARIABLES
-      #################################################
-
       environment = [
-        {
-          name  = "NODE_ENV"
-          value = "production"
-        },
-        {
-          name  = "APP_KEYS"
-          value = "key1,key2,key3,key4"
-        },
-        {
-          name  = "API_TOKEN_SALT"
-          value = "randomAPITokenSalt123"
-        },
-        {
-          name  = "ADMIN_JWT_SECRET"
-          value = "superSecretAdminJWT123"
-        },
-        {
-          name  = "JWT_SECRET"
-          value = "superSecretJWT123"
-        }
+        { name = "NODE_ENV",          value = "production" },
+        { name = "APP_KEYS",          value = "key1,key2,key3,key4" },
+        { name = "API_TOKEN_SALT",    value = "randomAPITokenSalt123" },
+        { name = "ADMIN_JWT_SECRET",  value = "superSecretAdminJWT123" },
+        { name = "JWT_SECRET",        value = "superSecretJWT123" }
       ]
 
       logConfiguration = {
@@ -61,4 +50,28 @@ resource "aws_ecs_task_definition" "task" {
       }
     }
   ])
+}
+
+#############################################
+# ECS SERVICE
+#############################################
+
+resource "aws_ecs_service" "service" {
+  name            = "gaurav-strapi-task8-service"
+  cluster         = aws_ecs_cluster.cluster.id
+  task_definition = aws_ecs_task_definition.task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = var.subnet_ids
+    security_groups  = [var.security_group_id]
+    assign_public_ip = true
+  }
+
+  force_new_deployment = true
+
+  depends_on = [
+    aws_ecs_task_definition.task
+  ]
 }
