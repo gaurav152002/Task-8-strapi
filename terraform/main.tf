@@ -1,0 +1,59 @@
+#############################################
+# VPC MODULE
+#############################################
+
+module "vpc" {
+  source = "./modules/vpc"
+
+  region                = var.region
+  vpc_cidr              = var.vpc_cidr
+  public_subnet_1_cidr  = var.public_subnet_1_cidr
+  public_subnet_2_cidr  = var.public_subnet_2_cidr
+}
+
+#############################################
+# SECURITY MODULE
+#############################################
+
+module "security" {
+  source = "./modules/security"
+  vpc_id = module.vpc.vpc_id
+}
+
+#############################################
+# ECR MODULE
+#############################################
+
+module "ecr" {
+  source = "./modules/ecr"
+}
+
+#############################################
+# CLOUDWATCH MODULE
+#############################################
+
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+  region = var.region
+}
+
+#############################################
+# ECS MODULE
+#############################################
+
+module "ecs" {
+  source              = "./modules/ecs"
+  region              = var.region
+  subnet_ids          = module.vpc.subnet_ids
+  security_group_id   = module.security.security_group_id
+  ecr_repo_url        = module.ecr.repository_url
+  log_group_name      = module.cloudwatch.log_group_name
+}
+
+#############################################
+# FINAL OUTPUT
+#############################################
+
+output "strapi_application_url" {
+  value = module.ecs.strapi_url
+}
