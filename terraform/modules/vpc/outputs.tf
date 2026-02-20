@@ -1,10 +1,7 @@
 output "vpc_id" {
-  value = aws_vpc.this.id
+  value = data.aws_vpc.default.id
 }
 
 output "subnet_ids" {
-  value = [
-    aws_subnet.public_1.id,
-    aws_subnet.public_2.id
-  ]
+  value = data.aws_subnets.default.ids
 }
