@@ -1,18 +1,15 @@
 #############################################
-# USE EXISTING VPC
+# USE SPECIFIC VPC
 #############################################
 
 data "aws_vpc" "existing" {
-  id = "vpc-0295253d470704295"   # <-- replace if you choose another
+  id = "vpc-02394aac3f6ed622b"
 }
 
 #############################################
-# GET SUBNETS FROM THAT VPC
+# USE SPECIFIC PUBLIC SUBNET
 #############################################
 
-data "aws_subnets" "existing" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.existing.id]
-  }
+data "aws_subnet" "public" {
+  id = "subnet-0fbd6ace1bb63c1c1"
 }

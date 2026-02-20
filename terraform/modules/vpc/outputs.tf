@@ -3,5 +3,5 @@ output "vpc_id" {
 }
 
 output "subnet_ids" {
-  value = data.aws_subnets.existing.ids
+  value = [data.aws_subnet.public.id]
 }
